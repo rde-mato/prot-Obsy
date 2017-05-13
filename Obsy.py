@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*- 
 #--------------------------------------
 #    ___  ___  _ ____
 #   / _ \/ _ \(_) __/__  __ __
@@ -10,29 +11,15 @@
 #  LCD test script using I2C backpack.
 #  Supports 16x2 and 20x4 screens.
 #
-# Author : Matt Hawkins
-# Date   : 20/09/2015
-#
-# http://www.raspberrypi-spy.co.uk/
-#
-# Copyright 2015 Matt Hawkins
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 #--------------------------------------
 import smbus
 import time
+from datetime import datetime
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BCM)
+
+# Le GPIO 23 est initialisé en entrée. Il est en pull-up pour éviter les faux signaux
+GPIO.setup(23, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Define some device parameters
 I2C_ADDR  = 0x27 # I2C device address
@@ -60,8 +47,30 @@ E_DELAY = 0.0005
 #bus = smbus.SMBus(0)  # Rev 1 Pi uses 0
 bus = smbus.SMBus(1) # Rev 2 Pi uses 1
 
+red = 17
+green = 18
+blue = 27
+# GPIO setup.
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(red, GPIO.OUT)
+GPIO.setup(green, GPIO.OUT)
+GPIO.setup(blue, GPIO.OUT)
+
+
+# Set up colors using PWM so we can control individual brightness.
+RED = GPIO.PWM(red, 100)
+GREEN = GPIO.PWM(green, 100)
+BLUE = GPIO.PWM(blue, 100)
+RED.start(0)
+GREEN.start(0)
+BLUE.start(0)
+
+
+
+
 def lcd_init():
-  # Initialise display
+    # Initialise display
   lcd_byte(0x33,LCD_CMD) # 110011 Initialise
   lcd_byte(0x32,LCD_CMD) # 110010 Initialise
   lcd_byte(0x06,LCD_CMD) # 000110 Cursor move direction
@@ -71,7 +80,7 @@ def lcd_init():
   time.sleep(E_DELAY)
 
 def lcd_byte(bits, mode):
-  # Send byte to data pins
+    # Send byte to data pins
   # bits = the data
   # mode = 1 for data
   #        0 for command
@@ -88,7 +97,7 @@ def lcd_byte(bits, mode):
   lcd_toggle_enable(bits_low)
 
 def lcd_toggle_enable(bits):
-  # Toggle enable
+    # Toggle enable
   time.sleep(E_DELAY)
   bus.write_byte(I2C_ADDR, (bits | ENABLE))
   time.sleep(E_PULSE)
@@ -96,59 +105,90 @@ def lcd_toggle_enable(bits):
   time.sleep(E_DELAY)
 
 def lcd_string(message,line):
-  # Send string to display
+    # Send string to display
 
   message = message.ljust(LCD_WIDTH," ")
 
   lcd_byte(line, LCD_CMD)
 
   for i in range(LCD_WIDTH):
-    lcd_byte(ord(message[i]),LCD_CHR)
+      lcd_byte(ord(message[i]),LCD_CHR)
+
+# Set a color by giving R, G, and B values of 0-255.
+def setColor(rgb = []):
+    # Convert 0-255 range to 0-100.
+    rgb = [(x / 255.0) * 100 for x in rgb]
+    RED.ChangeDutyCycle(rgb[0])
+    GREEN.ChangeDutyCycle(rgb[1])
+    BLUE.ChangeDutyCycle(rgb[2])
+
+def set_medoc_time():
+    date = datetime.now()
+    hour = date.hour
+    minute = date.minute
+    second = 0
+    medoc_time = datetime(2017, 5, 13, hour, minute + 1, second, 0)
+    return medoc_time
 
 def main():
   # Main program block
-
   # Initialise display
   lcd_init()
+  # Init GPIO detection
+  GPIO.add_event_detect(23, GPIO.FALLING)
+  medoc_time = datetime(2017, 5, 13, 16, 30, 0, 0)
+  medoc_ok = 0
 
   while True:
 
-    # Send some test
-    lcd_string("Mami !", LCD_LINE_1)
-    lcd_string("Pillule ?!", LCD_LINE_2)
+       # Get date object
+      date = datetime.now()
 
+      hour = '{:0>2}'.format(str(date.hour))
+      minute = '{:0>2}'.format(str(date.minute))
+      second = '{:0>2}'.format(str(date.second))
 
-    RED.ChangeDutyCycle(rgb[0])
+      # Send some test
+      lcd_string( hour + ':' + minute + ':' + second, LCD_LINE_1 )
 
+      if GPIO.event_detected(23) and not medoc_ok:
+          lcd_string( "Medoc OK!", LCD_LINE_2 )
+          medoc_time = set_medoc_time()
+          medoc_ok = 1
+          setColor([0, 0, 0])
+          time.sleep(2)
+      elif date > medoc_time and not medoc_ok:
+          lcd_string( "MAMIE MEDOC!", LCD_LINE_2 )
+          setColor([255, 255, 255])
+      else:
+          medoc_ok = 0
+          lcd_string( "Pillule ?!", LCD_LINE_2 )
+#     RED.ChangeDutyCycle(100)
+#     time.sleep(3)
 
-
-    time.sleep(3)
-  
 if __name__ == '__main__':
 
-  try:
-    main()
-  except KeyboardInterrupt:
-    pass
-  finally:
-    lcd_byte(0x01, LCD_CMD)
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        lcd_byte(0x01, LCD_CMD)
+        GPIO.cleanup()           # reinitialisation GPIO lors d'une sortie normale
 
 
 
-
-
-
-red = 17
-green = 18
-blue = 27
+#red = 17
+#green = 18
+#blue = 27
 
 # GPIO setup.
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
+#GPIO.setmode(GPIO.BCM)
+#GPIO.setwarnings(False)
 
-GPIO.setup(red, GPIO.OUT)
-GPIO.setup(green, GPIO.OUT)
-GPIO.setup(blue, GPIO.OUT)
+#GPIO.setup(red, GPIO.OUT)
+#GPIO.setup(green, GPIO.OUT)
+#GPIO.setup(blue, GPIO.OUT)
 
 # Set up colors using PWM so we can control individual brightness.
-RED = GPIO.PWM(red, 100)
+#RED = GPIO.PWM(red, 100)
