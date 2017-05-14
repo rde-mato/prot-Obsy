@@ -7,10 +7,6 @@
 # /_/|_/_/  /_/___/ .__/\_, /
 #                /_/   /___/
 #
-#  lcd_i2c.py
-#  LCD test script using I2C backpack.
-#  Supports 16x2 and 20x4 screens.
-#
 #--------------------------------------
 import smbus
 import time
@@ -20,6 +16,7 @@ GPIO.setmode(GPIO.BCM)
 
 # Le GPIO 23 est initialisé en entrée. Il est en pull-up pour éviter les faux signaux
 GPIO.setup(23, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Define some device parameters
 I2C_ADDR  = 0x27 # I2C device address
@@ -56,7 +53,6 @@ GPIO.setwarnings(False)
 GPIO.setup(red, GPIO.OUT)
 GPIO.setup(green, GPIO.OUT)
 GPIO.setup(blue, GPIO.OUT)
-
 
 # Set up colors using PWM so we can control individual brightness.
 RED = GPIO.PWM(red, 100)
@@ -127,8 +123,15 @@ def set_medoc_time():
     hour = date.hour
     minute = date.minute
     second = 0
-    medoc_time = datetime(2017, 5, 13, hour, minute + 1, second, 0)
+    medoc_time = datetime(2017, 5, 14, hour, minute + 1, second, 0)
     return medoc_time
+
+def switch_led_onoff(stateled):
+  if stateled:
+    setColor([0, 0, 0])
+  else:
+    setColor([0, 255, 0])
+
 
 def main():
   # Main program block
@@ -136,12 +139,14 @@ def main():
   lcd_init()
   # Init GPIO detection
   GPIO.add_event_detect(23, GPIO.FALLING)
-  medoc_time = datetime(2017, 5, 13, 16, 30, 0, 0)
+  GPIO.add_event_detect(24, GPIO.FALLING)
+  medoc_time = datetime(2017, 5, 14, 9, 30, 0, 0)
   medoc_ok = 0
+  stateled = 1
 
   while True:
 
-       # Get date object
+      # Get date object
       date = datetime.now()
 
       hour = '{:0>2}'.format(str(date.hour))
@@ -157,9 +162,17 @@ def main():
           medoc_ok = 1
           setColor([0, 0, 0])
           time.sleep(2)
+      if GPIO.event_detected(24):
+          if stateled:
+            setColor([0, 255, 0])
+            stateled = 0
+          else:
+            setColor([0, 0, 0])
+            stateled = 1
+          time.sleep(1)
       elif date > medoc_time and not medoc_ok:
           lcd_string( "MAMIE MEDOC!", LCD_LINE_2 )
-          setColor([255, 255, 255])
+          setColor([190, 0, 0])
       else:
           medoc_ok = 0
           lcd_string( "Pillule ?!", LCD_LINE_2 )
