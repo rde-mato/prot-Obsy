@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<title>Obsy</title>
+
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	
+	<h1>Bienvenue dans l'interface de configuration - OBSY</h1>
+
+
+	<form method="post" action="rappel_traitement.php">
+
+		<fieldset>
+			<legend>Veuillez rentrer les informations demandées :</legend>
+
+			<p>
+				<label for="nom_alarme">Nom de votre alerte</label> :
+				<input type="text" name="nom_alarme" id="nom_alarme" placeholder="Ex : Pillule mamie" required>
+			</p>
+			<p>
+				<label for="periodicite">Rythme de votre traitement</label>
+				<select name="periodicite" id="periodicite">
+					<option value="heure">Toutes les heures</option>
+					<option value="semaine">Toutes les semaines</option>
+					<option value="mois">Tous les mois</option>
+				</select>
+			</p>
+			<p>
+				Cochez les jours où vous devez prendre votre traitement <br>
+				<input type="checkbox" name="Lundi" id="Lundi"><label for="Lundi">Lundi</label> <br>
+				<input type="checkbox" name="Mardi" id="Mardi"><label for="Mardi">Mardi</label> <br>
+				<input type="checkbox" name="Mercredi" id="Mercredi"><label for="Mercredi">Mercredi</label> <br>
+				<input type="checkbox" name="Jeudi" id="Jeudi"><label for="Jeudi">Jeudi</label> <br>
+				<input type="checkbox" name="Vendredi" id="Vendredi"><label for="Vendredi">Vendredi</label> <br>
+				<input type="checkbox" name="Samedi" id="Samedi"><label for="Samedi">Samedi</label> <br>
+				<input type="checkbox" name="Dimanche" id="Dimanche"><label for="Dimanche">Dimanche</label> <br>
+			</p>
+			<p>
+				<table>
+					<tr>
+						<td>Ajouter une nouvelle heure :</td>
+						<td id="heure"><input type="time" name="horaire"></td>
+						<td><button type="button" onclick="addField()" >+</button></td> <!-- Ancienne méthode -->
+					</tr>
+				</table>
+			</p>
+			<p>
+				<label for="message">Message</label> :
+				<input type="text" name="message" id="message" placeholder="&hearts; Pense à ton cacheton mamie &hearts;" size="40" maxlenght="60">
+			</p>
+			<p>
+				Choisissez votre couleur :
+				<input type="radio" name="color" value="blanc" id="blanc"><label for="blanc"><span class="color blanc" required></span></label>
+				<input type="radio" name="color" value="bleu" id="bleu"><label for="bleu"><span class="color bleu"></span></label>
+				<input type="radio" name="color" value="rose" id="rose"><label for="rose"><span class="color rose"></span></label>
+				<input type="radio" name="color" value="violet" id="violet"><label for="violet"><span class="color violet"></span></label>
+				<input type="radio" name="color" value="vert" id="vert"><label for="vert"><span class="color vert"></span></label>
+			</p>
+		</fieldset>
+
+		<input id='submit' type='submit' name='submit' value='Envoyer'>
+	</form>
+
+
+<script>
+	var div = document.getElementById('heure'); // champ_1 représente l'id du tr où se situe le bouton
+function addInput(name){
+	var input = document.createElement("input");
+	input.name = name;
+	div.appendChild(input);
+}
+function addField() {
+	addInput("horaire");
+}
+</script>
+
+</body>
+</html>

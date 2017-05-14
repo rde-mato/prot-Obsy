@@ -8,6 +8,7 @@
 #                /_/   /___/
 #
 #--------------------------------------
+from doconfig import *
 import smbus
 import time
 from datetime import datetime
@@ -62,7 +63,10 @@ RED.start(0)
 GREEN.start(0)
 BLUE.start(0)
 
-
+cList = conf_open()
+oBjs = get_conf(cList)
+for oo in oBjs:
+    doThisShit(oo)
 
 
 def lcd_init():
@@ -140,9 +144,16 @@ def main():
   # Init GPIO detection
   GPIO.add_event_detect(23, GPIO.FALLING)
   GPIO.add_event_detect(24, GPIO.FALLING)
-  medoc_time = datetime(2017, 5, 14, 9, 30, 0, 0)
   medoc_ok = 0
   stateled = 1
+
+  medoc = Medoc()
+  medoc.setMedoc(oBjs[-1])
+  message = "Coucou Papi"
+  heuredeprise = medoc.hours[0].split(':')[0]
+  minutedeprise = medoc.hours[0].split(':')[1]
+
+  medoc_time = datetime(2017, 5, 14, int(heuredeprise), int(minutedeprise), 0, 0)
 
   while True:
 
@@ -157,7 +168,7 @@ def main():
       lcd_string( hour + ':' + minute + ':' + second, LCD_LINE_1 )
 
       if GPIO.event_detected(23) and not medoc_ok:
-          lcd_string( "Medoc OK!", LCD_LINE_2 )
+          lcd_string( "Traitement pris", LCD_LINE_2 )
           medoc_time = set_medoc_time()
           medoc_ok = 1
           setColor([0, 0, 0])
@@ -171,13 +182,11 @@ def main():
             stateled = 1
           time.sleep(1)
       elif date > medoc_time and not medoc_ok:
-          lcd_string( "MAMIE MEDOC!", LCD_LINE_2 )
+          lcd_string( medoc.name + '' + medoc.hours[0] , LCD_LINE_2 )
           setColor([190, 0, 0])
       else:
           medoc_ok = 0
-          lcd_string( "Pillule ?!", LCD_LINE_2 )
-#     RED.ChangeDutyCycle(100)
-#     time.sleep(3)
+          lcd_string( message, LCD_LINE_2 )
 
 if __name__ == '__main__':
 
@@ -189,19 +198,3 @@ if __name__ == '__main__':
         lcd_byte(0x01, LCD_CMD)
         GPIO.cleanup()           # reinitialisation GPIO lors d'une sortie normale
 
-
-
-#red = 17
-#green = 18
-#blue = 27
-
-# GPIO setup.
-#GPIO.setmode(GPIO.BCM)
-#GPIO.setwarnings(False)
-
-#GPIO.setup(red, GPIO.OUT)
-#GPIO.setup(green, GPIO.OUT)
-#GPIO.setup(blue, GPIO.OUT)
-
-# Set up colors using PWM so we can control individual brightness.
-#RED = GPIO.PWM(red, 100)

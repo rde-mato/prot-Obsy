@@ -14,7 +14,7 @@ class Medoc:
         self.hours = []
 
 def conf_open():
-    filename = "obsy.conf"
+    filename = "/var/www/html/obsy.conf"
     
     with open(filename, "r") as f:
         confList = f.read().splitlines()
@@ -42,7 +42,4 @@ def doThisShit(oB):
         print 'hour: ' + h
     print ''
 
-cList = conf_open()
-oBjs = get_conf(cList)
-for oo in oBjs:
-    doThisShit(oo)
+
