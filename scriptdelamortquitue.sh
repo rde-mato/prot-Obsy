@@ -1,8 +1,12 @@
-<?php
+#!/bin/bash
+
+MY_IP="`ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' | tail -1`"
+
+echo "<?php
 
 #rappel_traitement.php?nom_alarme=thai&periodicite=heure&Lundi=on&Mercredi=on&Vendredi=on&tab1[]=12%3A30&message=YeY&color=bleu
 
-$postdata = http_build_query(
+\$postdata = http_build_query(
     array(
         'nom_alarme' => 'thai',
         'periodicite' => 'heure',
@@ -13,15 +17,18 @@ $postdata = http_build_query(
     )
 );
 
-$opts = array('http' =>
+\$opts = array('http' =>
     array(
         'method'  => 'POST',
         'header'  => 'Content-type: application/x-www-form-urlencoded',
-        'content' => $postdata
+        'content' => \$postdata
     )
 );
 
-$context  = stream_context_create($opts);
+\$context  = stream_context_create(\$opts);
 
-$result = file_get_contents('http://10.18.190.103/rappel_traitement.php', false, $context);
-?>
+\$result = file_get_contents('http://${MY_IP}/rappel_traiement.php', false, \$context);
+?>" > /var/www/html/post.php
+
+
+

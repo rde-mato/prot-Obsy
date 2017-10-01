@@ -2,6 +2,7 @@
 
 class Medoc:
     def setMedoc(self, obj):
+        # format: name+freq+hour1-hour2-hour3 
         self.name = obj[0]
         self.frequency = obj[1]
         self.tmp = obj[2].split("-")
@@ -16,7 +17,7 @@ class Medoc:
 def conf_open():
     filename = "/var/www/html/obsy.conf"
     
-    with open(filename, "r") as f:
+    with open(filename, "rw") as f:
         confList = f.read().splitlines()
     
     confList = filter(None, confList)
@@ -34,7 +35,9 @@ def get_conf(confList):
 
 
 def doThisShit(oB):
+    # Init class
     medoc = Medoc()
+    # Set class values
     medoc.setMedoc(oB)
     print 'name: ' + medoc.name
     print 'freq: ' + str(medoc.frequency)

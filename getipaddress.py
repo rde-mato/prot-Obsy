@@ -10,9 +10,8 @@
 #--------------------------------------
 from doconfig import *
 import smbus
-import time
 import socket
-from datetime import datetime
+import time
 from subprocess import call
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
@@ -82,7 +81,7 @@ def lcd_init():
   time.sleep(E_DELAY)
 
 def lcd_byte(bits, mode):
-    # Send byte to data pins
+  # Send byte to data pins
   # bits = the data
   # mode = 1 for data
   #        0 for command
@@ -124,111 +123,21 @@ def setColor(rgb = []):
     GREEN.ChangeDutyCycle(rgb[1])
     BLUE.ChangeDutyCycle(rgb[2])
 
-def set_medoc_time():
-    date = datetime.now()
-    hour = date.hour
-    minute = date.minute + 1
-    second = 0
-    year = date.year
-    month = date.month
-    day = date.day
-    medoc_time = datetime(year, month, day, hour, minute, second, 0)
-    print "Set medoc time:"
-    print "date: " + str(year) + "-" + str(month) + "-" + str(day)
-    print "hour: " + str(hour) + "-" + str(minute) + "-" + str(second)
-    return medoc_time
-
-def switch_led_onoff(stateled):
-    if stateled:
-        setColor([0, 0, 0])
-    else:
-        setColor([0, 255, 0])
-
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     return s.getsockname()[0]
 
 
-def main():
-    # Main program block
+# Main program block
+# Initialize display
+lcd_init()
+# Init GPIO detection
+GPIO.add_event_detect(23, GPIO.FALLING)
+GPIO.add_event_detect(24, GPIO.FALLING)
 
-  # Initialize display
-  lcd_init()
-  # Init GPIO detection
-  GPIO.add_event_detect(23, GPIO.FALLING)
-  GPIO.add_event_detect(24, GPIO.FALLING)
-  # Init
-  medoc_ok = 0
-  stateled = 1
-
-  # SHOW IP ADDRESS
-  show_ip = get_ip_address() 
-  print "IP address: " + show_ip
-  lcd_string( show_ip, LCD_LINE_1 )
-  while True:
-      if GPIO.event_detected(23):
-          break
-
-  # Init
-  medoc = Medoc()
-  medoc.setMedoc(oBjs[-1])
-  message = "Coucou Papi"
-  heuredeprise = medoc.hours[0].split(':')[0]
-  minutedeprise = medoc.hours[0].split(':')[1]
-
-  date = datetime.now()
-  year = '{:0>2}'.format(str(date.year))
-  month = '{:0>2}'.format(str(date.month))
-  day = '{:0>2}'.format(str(date.day))
-
-# DEBUG
-  print "Medoc: \n" + heuredeprise + ":" + minutedeprise
-  print "date: " + str(year) + "-" + str(month) + "-" + str(day)
-  #print "hour: " + str(hour) + "-" + str(minute) + "-" + str(second)
-
-  medoc_time = datetime(int(year), int(month), int(day), int(heuredeprise), int(minutedeprise), 0, 0)
-  #medoc_time = datetime(2017, 10, 1, int(heuredeprise), int(minutedeprise), 0, 0)
-
-  while True:
-
-      # Get date object
-      date = datetime.now()
-
-      hour = '{:0>2}'.format(str(date.hour))
-      minute = '{:0>2}'.format(str(date.minute))
-      second = '{:0>2}'.format(str(date.second))
-
-      # Send some test
-      lcd_string( hour + ':' + minute + ':' + second, LCD_LINE_1 )
-      if GPIO.event_detected(23) and not medoc_ok:
-          lcd_string( "Traitement pris", LCD_LINE_2 )
-          medoc_time = set_medoc_time()
-          medoc_ok = 1
-          setColor([255, 255, 255])
-          time.sleep(2)
-      if GPIO.event_detected(24):
-        if stateled:
-            setColor([255, 0, 255])
-            stateled = 0
-        else:
-            setColor([255, 255, 255])
-            stateled = 1
-            time.sleep(1)
-      elif date > medoc_time and not medoc_ok:
-          lcd_string( medoc.name, LCD_LINE_2 )
-          setColor([65, 255, 255])
-      else:
-          medoc_ok = 0
-          lcd_string( message, LCD_LINE_2 )
-
-if __name__ == '__main__':
-
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        lcd_byte(0x01, LCD_CMD)
-        GPIO.cleanup()           # reinitialisation GPIO lors d'une sortie normale
+# SHOW IP ADDRESS
+show_ip = get_ip_address() 
+print "IP address: " + show_ip
+lcd_string( show_ip, LCD_LINE_1 )
 
