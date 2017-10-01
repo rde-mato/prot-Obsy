@@ -5,9 +5,11 @@ class Medoc:
         # format: name+freq+hour1-hour2-hour3 
         self.name = obj[0]
         self.frequency = obj[1]
+        self.n_hours = 0
         self.tmp = obj[2].split("-")
         for h in self.tmp:
             self.hours.append(h)
+            ++self.n_hours
         
     def __init__(self):
         self.name = ''
@@ -44,5 +46,5 @@ def doThisShit(oB):
     for h in medoc.hours:
         print 'hour: ' + h
     print ''
-
+    return medoc
 

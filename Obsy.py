@@ -127,13 +127,15 @@ def setColor(rgb = []):
 def set_medoc_time():
     date = datetime.now()
     hour = date.hour
-    minute = date.minute + 1
+    minute = date.minute + 10
+    #heuredeprise = medoc.hours[medoc.n_hours].split(':')[0]
+    #minutedeprise = medoc.hours[medoc.n_hours].split(':')[1]
     second = 0
     year = date.year
     month = date.month
     day = date.day
     medoc_time = datetime(year, month, day, hour, minute, second, 0)
-    print "Set medoc time:"
+    print "Set medoc_time:"
     print "date: " + str(year) + "-" + str(month) + "-" + str(day)
     print "hour: " + str(hour) + "-" + str(minute) + "-" + str(second)
     return medoc_time
